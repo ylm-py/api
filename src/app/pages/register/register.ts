@@ -3,6 +3,7 @@ import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validatio
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, authErrorMessage } from '../../services/auth-service';
 
+// S3 : la confirmation doit être identique au mot de passe
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   return group.get('password')?.value === group.get('confirm')?.value ? null : { mismatch: true };
 }
@@ -18,17 +19,16 @@ export class Register {
   private readonly fb = inject(NonNullableFormBuilder);
 
   readonly error = signal<string | null>(null);
-  readonly loading = signal(false);
 
   readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', Validators.required],
     confirm: ['', Validators.required],
   }, { validators: passwordsMatch });
 
+  // S3 : createUserWithEmailAndPassword
   async submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.loading.set(true);
     this.error.set(null);
     const { email, password } = this.form.getRawValue();
     try {
@@ -36,8 +36,6 @@ export class Register {
       await this.router.navigate(['/dashboard']);
     } catch (e) {
       this.error.set(authErrorMessage(e));
-    } finally {
-      this.loading.set(false);
     }
   }
 }

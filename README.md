@@ -1,106 +1,65 @@
 # MyPantry
 
-Application de gestion de garde-manger : projet fil rouge du cours **API et services cloud** (EILCO ING3).
-Projet de référence pour réviser l'examen pratique.
+Projet fil rouge du cours **API et services cloud** (EILCO ING3), séances 1 à 5.
+Le code suit les étapes du PDF du cours. Les fonctionnalités en plus sont uniquement des **mini défis** du PDF,
+et chacune est marquée dans le code par un commentaire `Mini défi Sx-n` (séance x, défi n).
 
-- **Angular 20** : composants standalone, `inject()`, signaux, `@if` / `@for`, formulaires réactifs
-- **Open Food Facts** (HttpClient) : recherche d'un produit par code-barres
-- **Firebase** (AngularFire 20) : Authentication (email/mot de passe et Google), Firestore, Security Rules, Hosting
-- **TheMealDB** (HttpClient) : recettes, comparaison avec le stock
-- **RxJS** : `map`, `switchMap`, `combineLatest`, `catchError`, `finalize`, `shareReplay`
+## Étapes du TP
 
-## Fonctionnalités
-
-| Page | Route | Séance |
+| Séance | Contenu | Route |
 |---|---|---|
-| Inscription / Connexion (Google, mot de passe oublié) | `/register`, `/login` | S3 |
-| Tableau de bord : nombre de produits, bientôt périmés (J+3), périmés, stock bas, totaux par unité | `/dashboard` | S4 |
-| Stock : liste en temps réel, filtre par emplacement, tri par péremption, +/−, suppression | `/stock` | S2 |
-| Ajouter un produit : recherche Open Food Facts puis formulaire | `/add` | S1 + S2 |
-| Recettes : recherche TheMealDB, % d'ingrédients disponibles, ajout des manquants à la liste | `/recipes` | S5 |
-| Liste de courses : produits sous le seuil + articles manuels ou issus de recettes | `/shopping-list` | S5 |
+| S1 | Angular 20 + Angular Material, `OpenFoodFactsService.getProduct()`, fiche produit + champs MyPantry | `/add` |
+| S2 | Firebase + Firestore, `PantryService` (CRUD), « Ajouter au stock », page Mon stock | `/stock` |
+| S3 | Inscription (avec confirmation), connexion, déconnexion, `userId`, Security Rules, route guard | `/register`, `/login` |
+| S4 | `DashboardService`, compteurs + listes, quantité totale par unité, états chargement / vide / erreur | `/dashboard` |
+| S5 | `RecipeService` (TheMealDB), modèle `Recipe`, `RecipeMatcherService`, disponibles / manquants / % | `/recipes` |
 
-Toutes les pages sauf `/login` et `/register` sont protégées par `authGuard`.
+## Mini défis réalisés (tous)
+
+| Défi | Où |
+|---|---|
+| S1-1 Nutri-Score | `add-product.html` |
+| S1-2 Produit trouvé / inconnu | `OpenFoodFactsService.findProduct()`, `add-product` |
+| S1-3 Indicateur de chargement | `add-product` |
+| S1-4 Bouton désactivé pendant la recherche | `add-product.html` |
+| S1-5 Touche Entrée | `add-product.html` |
+| S1-6 `fields` | `OpenFoodFactsService` |
+| S2-1 Formulaire de modification | `stock` |
+| S2-2 Validation des champs | `add-product` |
+| S2-3 Gestion des erreurs Firestore | `stock`, `add-product` |
+| S2-4 Indicateur de chargement | `stock.html` |
+| S2-5 Confirmation avant suppression | `stock` |
+| S2-6 Filtre par catégorie | `stock` |
+| S2-7 Filtre par emplacement | `stock` |
+| S2-8 Tri par date d'expiration | `stock.ts` |
+| S2-9 Image Open Food Facts | `stock.html` |
+| S3-1 Mot de passe oublié | `AuthService`, `login` |
+| S3-2 Connexion avec Google | `AuthService`, `login` |
+| S4-1 Tri par date d'expiration | `DashboardService.getExpiringProducts()` |
+| S4-2 Compteur de poids total | `DashboardService.getTotalWeight()`, `dashboard.html` |
+| S4-3 Indicateur de stock vide (rupture) | `DashboardService.getEmptyProducts()`, `dashboard.html` |
+| S4-4 Message personnalisé si stock vide | `dashboard.html` |
+| S4-5 Graphique (produits par emplacement) | `DashboardService.getCountByLocation()`, `dashboard` |
+| S4-6 Clic sur un indicateur -> page Stock | `dashboard.html` |
+| S5-1 Recettes les plus compatibles d'abord | `RecipeMatcherService.matchAll()` |
+| S5-2 Prioriser les recettes avec des produits bientôt périmés | `RecipeMatcherService` |
+| S5-3 Ingrédients manquants -> liste de courses (collection `shoppingList`) | `ShoppingListService`, `recipes` |
+| S5-4 Détail complet d'une recette | `recipes.html` |
+| S5-5 Recherche par nom | `recipes` |
 
 ## Lancer le projet
 
-### 1. Installer
+1. `npm install`
+2. Mettre la configuration Firebase dans `src/environments/environment.ts`.
+3. Console Firebase :
+   - **Authentication > Sign-in method** : activer **Adresse e-mail/Mot de passe** (et **Google** pour le mini défi S3-2).
+   - **Firestore Database** : créer la base.
+   - **Firestore > Règles** : coller le contenu de `firestore.rules`, puis publier.
+4. `ng serve`, puis ouvrir http://localhost:4200.
+
+## Déployer (S2, étape 3.2)
 
 ```bash
-npm install
-```
-
-### 2. Créer le projet Firebase
-
-1. Sur la [console Firebase](https://console.firebase.google.com), crée un projet.
-2. Ajoute une application **Web** (`</>`) et copie l'objet `firebaseConfig`.
-3. Colle ses valeurs dans `src/environments/environment.ts`.
-4. **Authentication > Sign-in method** : active **Email/Password** (et **Google** si tu veux le bouton Google).
-5. **Firestore Database** : crée la base.
-6. **Firestore > Règles** : colle le contenu de `firestore.rules`, puis publie.
-
-Sans l'étape 3, l'application démarre mais la connexion et Firestore échouent.
-
-### 3. Démarrer
-
-```bash
-npm start
-```
-
-Ouvre http://localhost:4200. Tu arrives sur `/login` : crée un compte, puis ajoute un produit (par exemple le code-barres `3017624010701`).
-
-### 4. Tests unitaires
-
-```bash
-npm test -- --watch=false --browsers=ChromeHeadless
-```
-
-Les tests couvrent la logique métier : règles du tableau de bord, matching recette/stock et conversion TheMealDB.
-
-### 5. Déployer sur Firebase Hosting
-
-```bash
-npm install -g firebase-tools
-firebase login
-firebase use --add          # choisir ton projet (remplace .firebaserc)
 ng build
-firebase deploy             # hosting + firestore.rules
+firebase deploy
 ```
-
-`firebase.json` est déjà configuré : dossier public `dist/my-pantry-app/browser` et réécriture SPA vers `index.html`.
-Ajoute ensuite le domaine `<projet>.web.app` dans **Authentication > Settings > Authorized domains** si besoin.
-
-## Structure
-
-```
-src/
-├── environments/environment.ts      configuration Firebase
-└── app/
-    ├── app.config.ts                providers : router, HttpClient, Firebase, Firestore, Auth
-    ├── app.routes.ts                routes + guards
-    ├── app.ts / app.html            en-tête, navigation, <router-outlet>
-    ├── guards/auth-guard.ts         authGuard, guestGuard
-    ├── models/                      interfaces TypeScript (OFF, PantryProduct, MealDB, Recipe, ShoppingItem)
-    ├── utils/dates.ts               Timestamp -> Date, dates locales
-    ├── services/
-    │   ├── open-food-facts-service.ts
-    │   ├── pantry-service.ts        CRUD Firestore sur `products`
-    │   ├── auth-service.ts
-    │   ├── dashboard-service.ts     règles métier + combineLatest
-    │   ├── recipe-service.ts        TheMealDB -> Recipe
-    │   ├── recipe-matcher-service.ts
-    │   └── shopping-list-service.ts CRUD + writeBatch sur `shoppingList`
-    └── pages/                       add-product, stock, login, register, dashboard, recipes, shopping-list
-firestore.rules                      chaque utilisateur ne lit et n'écrit que ses documents
-firebase.json / .firebaserc          configuration Firebase CLI
-```
-
-## Modèle Firestore
-
-```
-products/{id}       userId, name, brand, image, category, quantity, unit,
-                    purchaseDate, expirationDate, location, minQuantity
-shoppingList/{id}   userId, name, checked, source ('manual' | 'recipe'), createdAt
-```
-
-Chaque document porte le `uid` de son propriétaire dans `userId`. Les requêtes filtrent avec `where('userId', '==', uid)`, car les Security Rules ne sont pas des filtres.

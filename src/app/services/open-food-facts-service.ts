@@ -3,21 +3,22 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, of, throwError } from 'rxjs';
 import { OpenFoodFactsProduct, OpenFoodFactsResponse } from '../models/open-food-facts';
 
-// mini-défi 6 : ne récupérer que les champs utiles
-const FIELDS = 'code,product_name,brands,image_front_url,categories,nutriscore_grade';
+// Mini défi S1-6 : utiliser fields pour limiter les données récupérées
+const FIELDS = 'product_name,brands,image_front_url,categories,nutriscore_grade';
 
 @Injectable({ providedIn: 'root' })
 export class OpenFoodFactsService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'https://world.openfoodfacts.org/api/v3/product';
 
+  // S1 : getProduct(barcode: string)
   getProduct(barcode: string): Observable<OpenFoodFactsResponse> {
-    return this.http.get<OpenFoodFactsResponse>(`${this.baseUrl}/${barcode}`, {
-      params: { fields: FIELDS }
-    });
+    return this.http.get<OpenFoodFactsResponse>(
+      `https://world.openfoodfacts.org/api/v3/product/${barcode}`,
+      { params: { fields: FIELDS } }
+    );
   }
 
-  // null = produit inconnu ; erreur = problème réseau / API
+  // Mini défi S1-2 : produit trouvé (produit) / produit inconnu (null) ; une autre erreur reste une erreur
   findProduct(barcode: string): Observable<OpenFoodFactsProduct | null> {
     return this.getProduct(barcode).pipe(
       map(response => response.product ?? null),
@@ -27,7 +28,7 @@ export class OpenFoodFactsService {
     );
   }
 
-  // format externe -> format MyPantry
+  // S2 : format Open Food Facts -> format MyPantry (product_name -> name, brands -> brand…)
   toPantryDraft(p: OpenFoodFactsProduct) {
     return {
       name: p.product_name ?? '',

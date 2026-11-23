@@ -1,43 +1,73 @@
 @if (user$ | async; as user) { <h1>Bonjour {{ user.displayName || user.email }}</h1> }
 
 @if (state$ | async; as state) {
+  <!-- S4 : état de chargement -->
   @if (state.loading) {
-    <p>Chargement…</p>
+    <p>Chargement...</p>
   }
+  <!-- S4 : état d'erreur -->
   @if (state.error) {
     <p class="error">Impossible de charger votre stock. Veuillez réessayer.</p>
     <button (click)="retry()">Réessayer</button>
   }
   @if (state.stats; as stats) {
+    <!-- S4 : état vide -->
     @if (stats.productCount === 0) {
-      <p>Votre garde-manger est vide.</p>
+      <!-- Mini défi S4-4 : message personnalisé lorsque le stock est vide -->
+      @if (user$ | async; as user) {
+        <p>{{ user.displayName || user.email }}, votre garde-manger est vide.</p>
+      }
+      <p>Ajoutez votre premier produit pour commencer.</p>
       <a routerLink="/add">+ Ajouter un produit</a>
     } @else {
+      <!-- S4 étape 3 : compteurs -->
       <div class="tiles">
+        <!-- Mini défi S4-6 : navigation vers la page Stock au clic sur un indicateur (tous les liens) -->
         <a routerLink="/stock" class="tile"><b>{{ stats.productCount }}</b> produits</a>
-        <div class="tile"><b>{{ stats.expiring.length }}</b> bientôt périmés</div>
-        <div class="tile"><b>{{ stats.expired.length }}</b> périmés</div>
-        <a routerLink="/shopping-list" class="tile"><b>{{ stats.lowStock.length }}</b> à acheter</a>
+        <a routerLink="/stock" class="tile"><b>{{ stats.expiringProducts.length }}</b> bientôt périmés</a>
+        <a routerLink="/stock" class="tile"><b>{{ stats.expiredProducts.length }}</b> périmés</a>
+        <a routerLink="/stock" class="tile"><b>{{ stats.lowStockProducts.length }}</b> à acheter</a>
+        <!-- Mini défi S4-3 : indicateur de stock vide -->
+        <a routerLink="/stock" class="tile"><b>{{ stats.emptyProducts.length }}</b> en rupture</a>
+        <!-- Mini défi S4-2 : compteur de poids total -->
+        <div class="tile"><b>{{ stats.totalWeight | number:'1.0-2' }} kg</b> poids total</div>
       </div>
 
+      <!-- Mini défi S4-5 : graphique (produits par emplacement) -->
+      <h2>Produits par emplacement</h2>
+      <div class="chart">
+        @for (item of stats.countByLocation; track item.location) {
+          <div class="bar-row">
+            <span class="bar-label">{{ item.location }}</span>
+            <span class="bar" [style.width.%]="barWidth(item.count, stats.countByLocation)"></span>
+            <span class="bar-value">{{ item.count }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- S4 : quantité totale, en respectant les unités -->
       <p>En stock :
-        @for (t of stats.totals | keyvalue; track t.key) {
-          <span>{{ t.value | number:'1.0-2' }} {{ t.key }}</span>
+        @for (total of stats.totalQuantities | keyvalue; track total.key) {
+          <span>{{ total.value | number:'1.0-2' }} {{ total.key }} </span>
         }
       </p>
 
+      <!-- S4 étape 3 : listes correspondantes -->
+      <!-- Mini défi S4-1 : liste triée par date d'expiration -->
       <h2>À consommer rapidement</h2>
-      @for (p of stats.expiring; track p.id) {
+      @for (p of stats.expiringProducts; track p.id) {
         <p>{{ p.name }} · expire le {{ p.expirationDate | date:'dd/MM' }}</p>
       } @empty { <p>Rien à signaler.</p> }
 
       <h2>Périmés</h2>
-      @for (p of stats.expired; track p.id) { <p>{{ p.name }}</p> } @empty { <p>Aucun.</p> }
+      @for (p of stats.expiredProducts; track p.id) {
+        <p>{{ p.name }}</p>
+      } @empty { <p>Aucun.</p> }
 
       <h2>À acheter</h2>
-      @for (p of stats.lowStock; track p.id) {
+      @for (p of stats.lowStockProducts; track p.id) {
         <p>{{ p.name }} · stock : {{ p.quantity }} / min : {{ p.minQuantity }}</p>
-      } @empty { <p>Stock suffisant.</p> }
+      } @empty { <p>Rien à acheter.</p> }
     }
   }
 }

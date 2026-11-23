@@ -14,13 +14,14 @@ export class Login {
   private readonly fb = inject(NonNullableFormBuilder);
 
   readonly error = signal<string | null>(null);
-  readonly info = signal<string | null>(null);
+  readonly info = signal<string | null>(null);   // Mini défi S3-1
 
   readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
 
+  // S3 : signInWithEmailAndPassword
   async submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const { email, password } = this.form.getRawValue();
@@ -32,6 +33,7 @@ export class Login {
     }
   }
 
+  // Mini défi S3-2 : connexion avec Google
   async google() {
     try {
       await this.authService.loginWithGoogle();
@@ -41,6 +43,7 @@ export class Login {
     }
   }
 
+  // Mini défi S3-1 : mot de passe oublié
   async forgot() {
     const email = this.form.controls.email.value;
     if (!email) { this.error.set("Saisissez d'abord votre email."); return; }

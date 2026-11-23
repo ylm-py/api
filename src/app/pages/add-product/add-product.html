@@ -1,36 +1,41 @@
 <h1>Ajouter un produit</h1>
 
 <div class="search">
-  <input [formControl]="barcode" placeholder="Code-barres (ex. 3017624010701)"
-         inputmode="numeric" (keyup.enter)="search()">
-  <button type="button" (click)="search()" [disabled]="loading() || barcode.invalid">
-    {{ loading() ? 'Recherche…' : 'Chercher' }}
-  </button>
+  <!-- Mini défi S1-5 : permettre d'appuyer sur Entrée -->
+  <input [formControl]="barcode" placeholder="Code-barres (ex. 3017624010701)" (keyup.enter)="search()">
+  <!-- Mini défi S1-4 : désactiver le bouton pendant la recherche -->
+  <button type="button" (click)="search()" [disabled]="loading()">Chercher</button>
 </div>
 
+<!-- Mini défi S1-3 : indicateur de chargement -->
 @if (loading()) { <p class="info">Chargement…</p> }
-@if (notFound()) { <p class="warn">Produit inconnu d'Open Food Facts : saisissez-le à la main.</p> }
+<!-- Mini défi S1-2 : produit inconnu -->
+@if (notFound()) { <p class="warn">Produit inconnu d'Open Food Facts.</p> }
 @if (error(); as message) { <p class="error">{{ message }}</p> }
 
+<!-- S1 : nom, marque, image, catégorie -->
 @if (offProduct(); as p) {
   <article class="off-card">
     @if (p.image_front_url) {
-      <img [src]="p.image_front_url" [alt]="p.product_name || 'Produit'" width="120">
+      <img [src]="p.image_front_url" [alt]="p.product_name" width="120">
     }
     <div>
-      <h2>{{ p.product_name || 'Nom inconnu' }}</h2>
-      <p>{{ p.brands || 'Marque inconnue' }}</p>
-      <p>{{ p.categories || 'Catégorie inconnue' }}</p>
+      <h2>{{ p.product_name }}</h2>
+      <p>{{ p.brands }}</p>
+      <p>{{ p.categories }}</p>
+      <!-- Mini défi S1-1 : Nutri-Score -->
       @if (p.nutriscore_grade) {
         <span class="nutri nutri-{{ p.nutriscore_grade }}">Nutri-Score {{ p.nutriscore_grade | uppercase }}</span>
       }
-      <small>Source : Open Food Facts</small>
+      <small>Open Food Facts</small>
     </div>
   </article>
 }
 
+<!-- S1 : champs propres à MyPantry ; S2 : « Ajouter au stock » enregistre dans Firestore -->
 <form [formGroup]="form" (ngSubmit)="save()">
   <label>Nom <input formControlName="name"></label>
+  <!-- Mini défi S2-2 : validation des champs -->
   @if (form.controls.name.touched && form.controls.name.invalid) {
     <small class="error">Le nom est obligatoire.</small>
   }
@@ -47,5 +52,5 @@
       @for (l of locations; track l) { <option [value]="l">{{ l }}</option> }
     </select>
   </label>
-  <button type="submit" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Ajouter au stock' }}</button>
+  <button type="submit">Ajouter au stock</button>
 </form>

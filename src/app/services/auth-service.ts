@@ -3,13 +3,12 @@ import {
   Auth, authState, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider
 } from '@angular/fire/auth';
-import { firstValueFrom } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly auth = inject(Auth);
 
-  // émet l'utilisateur courant, ou null
+  // S3 : émet l'utilisateur courant, ou null
   readonly user$ = authState(this.auth);
 
   register(email: string, password: string) {
@@ -20,25 +19,22 @@ export class AuthService {
     return signInWithEmailAndPassword(this.auth, email, password);
   }
 
-  loginWithGoogle() {
-    return signInWithPopup(this.auth, new GoogleAuthProvider());
-  }
-
-  resetPassword(email: string) {
-    return sendPasswordResetEmail(this.auth, email);
-  }
-
   logout() {
     return signOut(this.auth);
   }
 
-  async getUid(): Promise<string> {
-    const user = await firstValueFrom(this.user$);
-    if (!user) throw new Error('Utilisateur non connecté');
-    return user.uid;
+  // Mini défi S3-1 : mot de passe oublié
+  resetPassword(email: string) {
+    return sendPasswordResetEmail(this.auth, email);
+  }
+
+  // Mini défi S3-2 : connexion avec Google
+  loginWithGoogle() {
+    return signInWithPopup(this.auth, new GoogleAuthProvider());
   }
 }
 
+// S3 : gestion des erreurs du formulaire d'inscription / connexion
 export function authErrorMessage(error: unknown): string {
   const code = (error as { code?: string }).code ?? '';
   switch (code) {
@@ -48,8 +44,6 @@ export function authErrorMessage(error: unknown): string {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found': return 'Email ou mot de passe incorrect.';
-    case 'auth/too-many-requests': return 'Trop de tentatives. Réessayez plus tard.';
-    case 'auth/operation-not-allowed': return 'Méthode de connexion non activée dans la console Firebase.';
     default: return 'Une erreur est survenue. Réessayez.';
   }
 }

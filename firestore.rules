@@ -2,32 +2,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() {
-      return request.auth != null;
-    }
-    // le document existant appartient à l'utilisateur
-    function isOwner() {
-      return signedIn() && resource.data.userId == request.auth.uid;
-    }
-    // le document écrit appartiendra à l'utilisateur
-    function willBeOwner() {
-      return signedIn() && request.resource.data.userId == request.auth.uid;
-    }
-
+    // S3 : chaque utilisateur ne voit et ne modifie que son stock
     match /products/{productId} {
-      allow read, delete: if isOwner();
-      allow create: if willBeOwner()
-        && request.resource.data.quantity is number
-        && request.resource.data.quantity >= 0;
-      allow update: if isOwner()
+      // lecture / suppression : le document existe déjà -> resource.data
+      allow read, delete: if request.auth != null
+        && request.auth.uid == resource.data.userId;
+      // création : le document n'existe pas encore -> request.resource.data
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId;
+      // modification : le userId doit rester identique
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId;
     }
 
+    // Mini défi S5-3 : liste de courses (même principe)
     match /shoppingList/{itemId} {
-      allow read, delete: if isOwner();
-      allow create: if willBeOwner();
-      allow update: if isOwner()
-        && request.resource.data.userId == resource.data.userId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId;
     }
   }
 }

@@ -1,26 +1,34 @@
 import { Injectable, inject } from '@angular/core';
 import {
-  Firestore, DocumentData, collection, collectionData, doc,
+  Firestore, collection, collectionData, doc,
   addDoc, updateDoc, deleteDoc, query, where
 } from '@angular/fire/firestore';
-import { Observable, map } from 'rxjs';
+import { Observable, firstValueFrom, map } from 'rxjs';
+import { AuthService } from './auth-service';
 import { PantryProduct } from '../models/pantry-product';
 import { toDate } from '../utils/dates';
 
-// Firestore refuse les champs undefined ("Unsupported field value: undefined")
-function clean(data: object): DocumentData {
-  return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
-}
-
+// S2 : gérer les produits du stock MyPantry dans Firestore
 @Injectable({ providedIn: 'root' })
 export class PantryService {
   private readonly firestore = inject(Firestore);
-  private readonly productsRef = collection(this.firestore, 'products');
+  private readonly auth = inject(AuthService);
 
-  // R : flux temps réel des produits de l'utilisateur
+  // C — S3 : chaque produit appartient à un utilisateur (userId = uid)
+  async addProduct(product: Omit<PantryProduct, 'userId'>) {
+    const user = await firstValueFrom(this.auth.user$);
+    if (!user) throw new Error('Utilisateur non connecté');
+    return addDoc(collection(this.firestore, 'products'), {
+      ...product,
+      userId: user.uid
+    });
+  }
+
+  // R — S3 : filtre sur userId (la vraie sécurité reste dans les Security Rules)
   getProducts(userId: string): Observable<PantryProduct[]> {
-    const q = query(this.productsRef, where('userId', '==', userId));
+    const q = query(collection(this.firestore, 'products'), where('userId', '==', userId));
     return collectionData(q, { idField: 'id' }).pipe(
+      // Firestore renvoie des Timestamp : on les reconvertit en Date
       map(docs => docs.map(d => ({
         ...d,
         purchaseDate: toDate(d['purchaseDate']),
@@ -29,20 +37,15 @@ export class PantryService {
     );
   }
 
-  // C
-  addProduct(product: PantryProduct) {
-    const { id, ...data } = product;
-    return addDoc(this.productsRef, clean(data));
-  }
-
   // U
   updateProduct(id: string, changes: Partial<PantryProduct>) {
-    const { id: _ignored, userId: _owner, ...data } = changes;
-    return updateDoc(doc(this.firestore, 'products', id), clean(data));
+    const productRef = doc(this.firestore, 'products', id);
+    return updateDoc(productRef, changes);
   }
 
   // D
   deleteProduct(id: string) {
-    return deleteDoc(doc(this.firestore, 'products', id));
+    const productRef = doc(this.firestore, 'products', id);
+    return deleteDoc(productRef);
   }
 }

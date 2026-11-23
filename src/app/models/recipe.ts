@@ -18,4 +18,5 @@ export interface RecipeMatch {
   availableIngredients: RecipeIngredient[];
   missingIngredients: RecipeIngredient[];
   availability: number;   // pourcentage 0..100
+  expiringIngredients: RecipeIngredient[];   // Mini défi S5-2 : ingrédients du stock bientôt périmés
 }

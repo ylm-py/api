@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { OpenFoodFactsService } from '../../services/open-food-facts-service';
 import { PantryService } from '../../services/pantry-service';
-import { AuthService } from '../../services/auth-service';
 import { OpenFoodFactsProduct } from '../../models/open-food-facts';
 import { LOCATIONS, UNITS } from '../../models/pantry-product';
 import { parseLocalDate } from '../../utils/dates';
@@ -17,22 +16,21 @@ import { parseLocalDate } from '../../utils/dates';
 })
 export class AddProduct {
   private readonly off = inject(OpenFoodFactsService);
-  private readonly pantry = inject(PantryService);
-  private readonly auth = inject(AuthService);
+  private readonly pantryService = inject(PantryService);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly router = inject(Router);
 
   readonly units = UNITS;
   readonly locations = LOCATIONS;
 
-  readonly loading = signal(false);
-  readonly saving = signal(false);
-  readonly notFound = signal(false);
+  readonly loading = signal(false);       // Mini défi S1-3
+  readonly notFound = signal(false);      // Mini défi S1-2
   readonly error = signal<string | null>(null);
   readonly offProduct = signal<OpenFoodFactsProduct | null>(null);
 
-  readonly barcode = this.fb.control('', [Validators.required, Validators.pattern(/^\d{8,14}$/)]);
+  readonly barcode = this.fb.control('');
 
+  // Mini défi S2-2 : validation des champs
   readonly form = this.fb.group({
     name: ['', Validators.required],
     brand: [''],
@@ -45,14 +43,16 @@ export class AddProduct {
     minQuantity: [1, [Validators.required, Validators.min(0)]],
   });
 
+  // S1 : recherche Open Food Facts puis préremplissage du formulaire
   search(): void {
-    if (this.barcode.invalid || this.loading()) return;
+    const code = this.barcode.value.trim();
+    if (!code || this.loading()) return;
     this.loading.set(true);
     this.error.set(null);
     this.notFound.set(false);
     this.offProduct.set(null);
 
-    this.off.findProduct(this.barcode.value.trim())
+    this.off.findProduct(code)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: product => {
@@ -63,31 +63,27 @@ export class AddProduct {
           this.offProduct.set(product);
           this.form.patchValue(this.off.toPantryDraft(product));
         },
-        error: () => this.error.set('Impossible de contacter Open Food Facts. Vérifiez votre connexion.'),
+        error: () => this.error.set('Impossible de contacter Open Food Facts.'),
       });
   }
 
+  // S2 : Open Food Facts -> PantryProduct -> PantryService -> Firestore, puis « Mon stock »
   async save(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    this.saving.set(true);
-    this.error.set(null);
+    const { expirationDate, ...values } = this.form.getRawValue();
     try {
-      const v = this.form.getRawValue();
-      const userId = await this.auth.getUid();
-      await this.pantry.addProduct({
-        ...v,
-        userId,
+      await this.pantryService.addProduct({
+        ...values,
         purchaseDate: new Date(),
-        expirationDate: v.expirationDate ? parseLocalDate(v.expirationDate) : undefined,
+        // Firestore refuse les champs undefined : on n'ajoute la date que si elle est saisie
+        ...(expirationDate ? { expirationDate: parseLocalDate(expirationDate) } : {}),
       });
       await this.router.navigate(['/stock']);
     } catch {
-      this.error.set("L'enregistrement a échoué. Réessayez.");
-    } finally {
-      this.saving.set(false);
+      this.error.set("L'enregistrement a échoué.");   // Mini défi S2-3 : erreurs Firestore
     }
   }
 }

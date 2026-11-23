@@ -1,4 +1,4 @@
-/* Styles globaux MyPantry : volontairement simples, pas de librairie UI. */
+/* Styles globaux MyPantry (Angular Material ajouté en S1 avec ng add @angular/material). */
 :root {
   --bg: #f7f6f2;
   --surface: #ffffff;
@@ -79,12 +79,12 @@ button.link { background: none; border: none; color: var(--accent); padding: 0; 
 .off-card img, .recipe img, .row img { border-radius: 6px; object-fit: cover; }
 .row .info { flex: 1; color: var(--text); }
 .row .qty { display: flex; align-items: center; gap: 8px; }
-.row.low { border-left: 4px solid var(--warn); }
 .recipe { align-items: flex-start; }
 .recipe ul { padding-left: 18px; }
 .recipe .ok { color: var(--good); }
 .recipe .ko { color: var(--bad); }
 
+/* Mini défi S1-1 : Nutri-Score */
 .nutri { display: inline-block; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: 600; font-size: 0.85rem; }
 .nutri-a { background: #038141; }
 .nutri-b { background: #85bb2f; }
@@ -105,4 +105,21 @@ button.link { background: none; border: none; color: var(--accent); padding: 0; 
 }
 .tile b { font-size: 1.8rem; color: var(--accent); }
 
-label.done { text-decoration: line-through; color: var(--muted); }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+.row form.edit { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; max-width: none; flex: 1; margin: 0; }
+.row form.edit .actions { display: flex; gap: 8px; align-items: end; }
+
+/* Mini défi S4-5 : graphique en barres */
+.chart { display: grid; gap: 8px; max-width: 520px; }
+.bar-row { display: grid; grid-template-columns: 110px 1fr 32px; align-items: center; gap: 8px; }
+.bar-row .bar { display: block; height: 14px; min-width: 2px; background: var(--accent); border-radius: 4px; }
+.bar-row .bar-value { text-align: right; }
+
+/* Mini défi S5-4 : détail d'une recette */
+.recipe details { margin-top: 8px; }
+.recipe .badge { display: inline-block; padding: 2px 8px; margin-left: 6px; border-radius: 4px; background: #fdecc8; color: var(--warn); font-size: 0.85rem; }
+.recipe .instructions { white-space: pre-line; }

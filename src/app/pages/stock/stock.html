@@ -1,38 +1,81 @@
 <h1>Mon stock</h1>
 <a routerLink="/add">+ Ajouter un produit</a>
 
-<label>Emplacement
-  <select (change)="locationFilter.set($any($event.target).value)">
-    <option value="">Tous</option>
-    @for (l of locations; track l) { <option [value]="l">{{ l }}</option> }
-  </select>
-</label>
+<div class="filters">
+  <!-- Mini défi S2-7 : filtre par emplacement -->
+  <label>Emplacement
+    <select (change)="locationFilter.set($any($event.target).value)">
+      <option value="">Tous</option>
+      @for (l of locations; track l) { <option [value]="l">{{ l }}</option> }
+    </select>
+  </label>
+  <!-- Mini défi S2-6 : filtre par catégorie -->
+  @if (products$ | async; as products) {
+    <label>Catégorie
+      <select (change)="categoryFilter.set($any($event.target).value)">
+        <option value="">Toutes</option>
+        @for (c of categories(products); track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+    </label>
+  }
+</div>
 
+<!-- Mini défi S2-3 : gestion des erreurs Firestore -->
 @if (error(); as message) { <p class="error">{{ message }}</p> }
 
 @if (products$ | async; as products) {
   @for (p of visible(products); track p.id) {
-    <article class="row" [class.low]="isLow(p)">
+    <article class="row">
+      <!-- Mini défi S2-9 : affichage de l'image Open Food Facts -->
       @if (p.image) { <img [src]="p.image" [alt]="p.name" width="48"> }
-      <div class="info">
-        <strong>{{ p.name }}</strong> <small>{{ p.brand }}</small>
-        <div>{{ p.location }} · expire le {{ p.expirationDate ? (p.expirationDate | date:'dd/MM/yyyy') : '—' }}</div>
-      </div>
-      <div class="qty">
-        <button (click)="changeQuantity(p, -1)" [disabled]="p.quantity === 0">−</button>
-        {{ p.quantity }} {{ p.unit }}
-        <button (click)="changeQuantity(p, 1)">+</button>
-      </div>
-      @if (pendingDelete() === p.id) {
-        <button (click)="remove(p)">Confirmer la suppression</button>
-        <button (click)="pendingDelete.set(null)">Annuler</button>
+
+      @if (editingId() === p.id) {
+        <!-- Mini défi S2-1 : formulaire de modification -->
+        <form class="edit" [formGroup]="editForm" (ngSubmit)="saveEdit(p)">
+          <label>Nom <input formControlName="name"></label>
+          <label>Quantité <input type="number" formControlName="quantity" min="0"></label>
+          <label>Unité
+            <select formControlName="unit">
+              @for (u of units; track u) { <option [value]="u">{{ u }}</option> }
+            </select>
+          </label>
+          <label>Péremption <input type="date" formControlName="expirationDate"></label>
+          <label>Seuil minimum <input type="number" formControlName="minQuantity" min="0"></label>
+          <label>Emplacement
+            <select formControlName="location">
+              @for (l of locations; track l) { <option [value]="l">{{ l }}</option> }
+            </select>
+          </label>
+          <div class="actions">
+            <button type="submit" [disabled]="editForm.invalid">Enregistrer</button>
+            <button type="button" class="secondary" (click)="editingId.set(null)">Annuler</button>
+          </div>
+        </form>
       } @else {
-        <button (click)="pendingDelete.set(p.id!)">Supprimer</button>
+        <div class="info">
+          <strong>{{ p.name }}</strong> <small>{{ p.brand }}</small>
+          <div>{{ p.location }} · {{ p.category || 'sans catégorie' }} · expire le {{ p.expirationDate ? (p.expirationDate | date:'dd/MM/yyyy') : '—' }}</div>
+        </div>
+        <!-- S2 : updateProduct() sur la quantité -->
+        <div class="qty">
+          <button (click)="changeQuantity(p, -1)">−</button>
+          {{ p.quantity }} {{ p.unit }}
+          <button (click)="changeQuantity(p, 1)">+</button>
+        </div>
+        <button class="secondary" (click)="startEdit(p)">Modifier</button>
+        <!-- S2 : deleteProduct() ; Mini défi S2-5 : confirmation avant suppression -->
+        @if (pendingDelete() === p.id) {
+          <button (click)="remove(p)">Confirmer la suppression</button>
+          <button (click)="pendingDelete.set(null)">Annuler</button>
+        } @else {
+          <button (click)="pendingDelete.set(p.id!)">Supprimer</button>
+        }
       }
     </article>
   } @empty {
-    <p>Votre garde-manger est vide. Ajoutez votre premier produit pour commencer.</p>
+    <p>Votre garde-manger est vide.</p>
   }
 } @else {
+  <!-- Mini défi S2-4 : indicateur de chargement -->
   <p>Chargement…</p>
 }
