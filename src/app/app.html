@@ -1,0 +1,19 @@
+<header>
+  <strong>MyPantry</strong>
+  @if (user$ | async; as user) {
+    <nav>
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/stock" routerLinkActive="active">Stock</a>
+      <a routerLink="/recipes" routerLinkActive="active">Recettes</a>
+      <a routerLink="/shopping-list" routerLinkActive="active">Courses</a>
+    </nav>
+    <span>Bonjour {{ user.displayName || user.email }}</span>
+    <button (click)="logout()">Déconnexion</button>
+  } @else {
+    <a routerLink="/login">Connexion</a>
+    <a routerLink="/register">Inscription</a>
+  }
+</header>
+<main>
+  <router-outlet />
+</main>

@@ -1,0 +1,108 @@
+/* Styles globaux MyPantry : volontairement simples, pas de librairie UI. */
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --text: #1f2421;
+  --muted: #66706a;
+  --line: #dedbd2;
+  --accent: #2f6f4f;
+  --accent-soft: #e3efe8;
+  --warn: #a15c00;
+  --bad: #b3261e;
+  --good: #2e7d32;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+
+app-root > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+app-root > header strong { font-size: 1.15rem; color: var(--accent); }
+app-root > header nav { display: flex; gap: 14px; flex: 1; }
+app-root > header a { color: var(--text); text-decoration: none; }
+app-root > header a.active { color: var(--accent); font-weight: 600; border-bottom: 2px solid var(--accent); }
+
+main { max-width: 960px; margin: 0 auto; padding: 20px 16px 48px; }
+h1 { margin-top: 0; }
+a { color: var(--accent); }
+
+form { display: grid; gap: 12px; max-width: 420px; margin: 16px 0; }
+label { display: grid; gap: 4px; font-size: 0.92rem; color: var(--muted); }
+input, select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+button {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.secondary { background: var(--surface); color: var(--accent); }
+button.link { background: none; border: none; color: var(--accent); padding: 0; text-align: left; text-decoration: underline; }
+
+.error { color: var(--bad); }
+.warn { color: var(--warn); }
+.info { color: var(--muted); }
+
+.search { display: flex; gap: 8px; margin-bottom: 12px; }
+.search input { flex: 1; }
+
+.off-card, .recipe, .row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  margin: 10px 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.off-card img, .recipe img, .row img { border-radius: 6px; object-fit: cover; }
+.row .info { flex: 1; color: var(--text); }
+.row .qty { display: flex; align-items: center; gap: 8px; }
+.row.low { border-left: 4px solid var(--warn); }
+.recipe { align-items: flex-start; }
+.recipe ul { padding-left: 18px; }
+.recipe .ok { color: var(--good); }
+.recipe .ko { color: var(--bad); }
+
+.nutri { display: inline-block; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: 600; font-size: 0.85rem; }
+.nutri-a { background: #038141; }
+.nutri-b { background: #85bb2f; }
+.nutri-c { background: #e6a700; }
+.nutri-d { background: #ee8100; }
+.nutri-e { background: #e63e11; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+.tile {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+.tile b { font-size: 1.8rem; color: var(--accent); }
+
+label.done { text-decoration: line-through; color: var(--muted); }

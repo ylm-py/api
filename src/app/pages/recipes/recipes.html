@@ -1,0 +1,30 @@
+<h1>Recettes</h1>
+<input #term placeholder="Rechercher (ex. chicken, pasta)" (keyup.enter)="onSearch(term.value)">
+<button (click)="onSearch(term.value)">Rechercher</button>
+
+@if (error(); as e) { <p class="error">{{ e }}</p> }
+@if (message(); as m) { <p class="info">{{ m }}</p> }
+
+@if (matches$ | async; as matches) {
+  @for (m of matches; track m.recipe.id) {
+    <article class="recipe">
+      <img [src]="m.recipe.image + '/preview'" [alt]="m.recipe.name" width="120">
+      <div>
+        <h2>{{ m.recipe.name }}</h2>
+        <p>Disponibilité : <b>{{ m.availability }} %</b>
+          ({{ m.availableIngredients.length }} / {{ m.recipe.ingredients.length }})</p>
+        <ul>
+          @for (i of m.availableIngredients; track i.name) { <li class="ok">✓ {{ i.name }} <small>{{ i.measure }}</small></li> }
+          @for (i of m.missingIngredients; track i.name) { <li class="ko">✗ {{ i.name }} <small>{{ i.measure }}</small></li> }
+        </ul>
+        @if (m.missingIngredients.length) {
+          <button (click)="addMissing(m)">Ajouter les ingrédients manquants</button>
+        }
+      </div>
+    </article>
+  } @empty {
+    <p>Aucune recette trouvée.</p>
+  }
+} @else {
+  <p>Chargement…</p>
+}

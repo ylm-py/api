@@ -1,0 +1,43 @@
+@if (user$ | async; as user) { <h1>Bonjour {{ user.displayName || user.email }}</h1> }
+
+@if (state$ | async; as state) {
+  @if (state.loading) {
+    <p>Chargement…</p>
+  }
+  @if (state.error) {
+    <p class="error">Impossible de charger votre stock. Veuillez réessayer.</p>
+    <button (click)="retry()">Réessayer</button>
+  }
+  @if (state.stats; as stats) {
+    @if (stats.productCount === 0) {
+      <p>Votre garde-manger est vide.</p>
+      <a routerLink="/add">+ Ajouter un produit</a>
+    } @else {
+      <div class="tiles">
+        <a routerLink="/stock" class="tile"><b>{{ stats.productCount }}</b> produits</a>
+        <div class="tile"><b>{{ stats.expiring.length }}</b> bientôt périmés</div>
+        <div class="tile"><b>{{ stats.expired.length }}</b> périmés</div>
+        <a routerLink="/shopping-list" class="tile"><b>{{ stats.lowStock.length }}</b> à acheter</a>
+      </div>
+
+      <p>En stock :
+        @for (t of stats.totals | keyvalue; track t.key) {
+          <span>{{ t.value | number:'1.0-2' }} {{ t.key }}</span>
+        }
+      </p>
+
+      <h2>À consommer rapidement</h2>
+      @for (p of stats.expiring; track p.id) {
+        <p>{{ p.name }} · expire le {{ p.expirationDate | date:'dd/MM' }}</p>
+      } @empty { <p>Rien à signaler.</p> }
+
+      <h2>Périmés</h2>
+      @for (p of stats.expired; track p.id) { <p>{{ p.name }}</p> } @empty { <p>Aucun.</p> }
+
+      <h2>À acheter</h2>
+      @for (p of stats.lowStock; track p.id) {
+        <p>{{ p.name }} · stock : {{ p.quantity }} / min : {{ p.minQuantity }}</p>
+      } @empty { <p>Stock suffisant.</p> }
+    }
+  }
+}

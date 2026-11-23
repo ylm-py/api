@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    // le document existant appartient à l'utilisateur
+    function isOwner() {
+      return signedIn() && resource.data.userId == request.auth.uid;
+    }
+    // le document écrit appartiendra à l'utilisateur
+    function willBeOwner() {
+      return signedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /products/{productId} {
+      allow read, delete: if isOwner();
+      allow create: if willBeOwner()
+        && request.resource.data.quantity is number
+        && request.resource.data.quantity >= 0;
+      allow update: if isOwner()
+        && request.resource.data.userId == resource.data.userId;
+    }
+
+    match /shoppingList/{itemId} {
+      allow read, delete: if isOwner();
+      allow create: if willBeOwner();
+      allow update: if isOwner()
+        && request.resource.data.userId == resource.data.userId;
+    }
+  }
+}

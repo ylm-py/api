@@ -1,0 +1,38 @@
+<h1>Mon stock</h1>
+<a routerLink="/add">+ Ajouter un produit</a>
+
+<label>Emplacement
+  <select (change)="locationFilter.set($any($event.target).value)">
+    <option value="">Tous</option>
+    @for (l of locations; track l) { <option [value]="l">{{ l }}</option> }
+  </select>
+</label>
+
+@if (error(); as message) { <p class="error">{{ message }}</p> }
+
+@if (products$ | async; as products) {
+  @for (p of visible(products); track p.id) {
+    <article class="row" [class.low]="isLow(p)">
+      @if (p.image) { <img [src]="p.image" [alt]="p.name" width="48"> }
+      <div class="info">
+        <strong>{{ p.name }}</strong> <small>{{ p.brand }}</small>
+        <div>{{ p.location }} · expire le {{ p.expirationDate ? (p.expirationDate | date:'dd/MM/yyyy') : '—' }}</div>
+      </div>
+      <div class="qty">
+        <button (click)="changeQuantity(p, -1)" [disabled]="p.quantity === 0">−</button>
+        {{ p.quantity }} {{ p.unit }}
+        <button (click)="changeQuantity(p, 1)">+</button>
+      </div>
+      @if (pendingDelete() === p.id) {
+        <button (click)="remove(p)">Confirmer la suppression</button>
+        <button (click)="pendingDelete.set(null)">Annuler</button>
+      } @else {
+        <button (click)="pendingDelete.set(p.id!)">Supprimer</button>
+      }
+    </article>
+  } @empty {
+    <p>Votre garde-manger est vide. Ajoutez votre premier produit pour commencer.</p>
+  }
+} @else {
+  <p>Chargement…</p>
+}
